@@ -40,6 +40,7 @@ from .exceptions import (
     KeycloakGetError,
     KeycloakInvalidTokenError,
     KeycloakPostError,
+    KeycloakPutError,
     KeycloakRPTNotFound,
     raise_error_from_response,
 )
@@ -48,6 +49,7 @@ from .urls_patterns import (
     URL_AUTH,
     URL_CERTS,
     URL_CLIENT_REGISTRATION,
+    URL_CLIENT_UPDATE,
     URL_ENTITLEMENT,
     URL_INTROSPECT,
     URL_LOGOUT,
@@ -701,3 +703,26 @@ class KeycloakOpenID:
             URL_CLIENT_REGISTRATION.format(**params_path), data=json.dumps(payload)
         )
         return raise_error_from_response(data_raw, KeycloakPostError)
+
+    def update_client(self, token: str, client_id: str, payload: dict):
+        """Update a client.
+
+        ClientRepresentation:
+        https://www.keycloak.org/docs-api/18.0/rest-api/index.html#_clientrepresentation
+
+        :param token: registration access token
+        :type token: str
+        :param client_id: Keycloak client id
+        :type client_id: str
+        :param payload: ClientRepresentation
+        :type payload: dict
+        :return: Client Representation
+        :rtype: dict
+        """
+        params_path = {"realm-name": self.realm_name, "client-id": client_id}
+        self.connection.add_param_headers("Authorization", "Bearer " + token)
+        self.connection.add_param_headers("Content-Type", "application/json")
+        data_raw = self.connection.raw_put(
+            URL_CLIENT_UPDATE.format(**params_path), data=json.dumps(payload)
+        )
+        return raise_error_from_response(data_raw, KeycloakPutError)
